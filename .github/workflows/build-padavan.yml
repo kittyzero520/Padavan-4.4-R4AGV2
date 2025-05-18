@@ -1,0 +1,37 @@
+name: Padavan Firmware Build
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:  # 支持手动触发编译
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.x
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.10
+
+      - name: Install dependencies (Debian/Ubuntu)
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y unzip libtool-bin curl cmake gperf gawk flex bison nano xxd \
+            fakeroot kmod cpio git python3-docutils gettext automake autopoint \
+            texinfo build-essential help2man pkg-config zlib1g-dev libgmp3-dev \
+            libmpc-dev libmpfr-dev libncurses5-dev libltdl-dev wget libc-dev-bin
+
+      - name: Clone toolchain and source
+        run: |
+          cd toolchain-mipsel
+          chmod +x dl_toolchain.sh
+          ./dl_toolchain.sh  # 下载预编译工具链
+          cd ..
+
+      - name: Compile firmware for K2P
+        run: |
+          cd trunk
+          fakeroot ./build_firmware_modify K2P  # 替换为你的设备型号
